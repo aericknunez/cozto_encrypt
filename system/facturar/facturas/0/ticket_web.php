@@ -11,27 +11,14 @@ include_once '../../../../application/common/Alerts.php';
 
 if ($seslog->login_check() == TRUE) {
 
-   $a = $db->query("SELECT * FROM ecommerce WHERE orden = '".$_REQUEST["orden"]."' and usuario = '".$_REQUEST["usr"]."' and td = ".$_SESSION["td"]."");
+   $a = $db->query("SELECT * FROM ticket WHERE num_fac = '".$_REQUEST["factura"]."' and td = ".$_SESSION["td"]." and tx = ".$_SESSION["tx"]."");
 
         $totalregistros =$a->num_rows;
         $datos = "";
-   
-    foreach ($a as $b) { 
 
-if ($r = $db->select("medida", "producto", "WHERE cod = '".$b["cod"]."' and td = ".$_SESSION["td"]."")) { 
-    $medida = $r["medida"];
-} unset($r);  
-
-    if ($r = $db->select("abreviacion", "producto_unidades", "WHERE hash = '".$medida."' and td = ".$_SESSION["td"]."")) { 
-        $unidad = $r["abreviacion"];
-    } unset($r);  
-
-
-
-
-
+    foreach ($a as $b) {
         $datos .= '<tr>
-                <td class="text-left">'. Helpers::Entero($b["cant"]) .' '.$unidad.'</td>
+                <td style="text-align:center;">'. $b["cant"] .'</td>
                 <td>'. $b["producto"] .'</td>                                
                 <td class="text-right">'. $b["pv"] .'</td>
                 <td class="text-right">'. $b["total"] .'</td>
@@ -39,21 +26,34 @@ if ($r = $db->select("medida", "producto", "WHERE cod = '".$b["cod"]."' and td =
     } $a->close();
 
 // datos generales de la factura
-    if ($r = $db->select("sum(stotal) as stotal, sum(descuento) as descuento, sum(imp) as imp, sum(total) as total", "ecommerce", "WHERE orden = '".$_REQUEST["orden"]."' and usuario = '".$_REQUEST["usr"]."' and td = ".$_SESSION["td"]."")) { 
+    if ($r = $db->select("fecha, hora, efectivo", "ticket_num", "WHERE num_fac = '".$_REQUEST["factura"]."' and td = ".$_SESSION["td"]." and tx = ".$_SESSION["tx"]."")) { 
+        $fecha = $r["fecha"];
+        $hora = $r["hora"];
+        $efectivo = $r["efectivo"];
+
+        
+    } unset($r);  
+
+
+    if ($r = $db->select("sum(stotal) as stotal, sum(descuento) as descuento, sum(imp) as imp, sum(total) as total", "ticket", "WHERE num_fac = '".$_REQUEST["factura"]."' and td = ".$_SESSION["td"]." and tx = ".$_SESSION["tx"]."")) { 
         $stotal = $r["stotal"];
         $total = $r["total"];
         $imp = $r["imp"];
         $descuento = $r["descuento"];
     } unset($r);  
 
-
+//
+    if ($r = $db->select("cliente, documento", "facturar_documento_factura", "WHERE factura = '".$_REQUEST["factura"]."' and td = ".$_SESSION["td"]." and tx = ".$_SESSION["tx"]."")) { 
+        $cliente = $r["cliente"];
+        $documento = $r["documento"];
+    } unset($r);  
 
 if($totalregistros > 0){
 ?>
 <!DOCTYPE html>
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         
-        <title>Imprimir Orden de Compra</title>
+        <title>Imprimir Factura</title>
         <meta http-equiv="cache-control" content="no-cache">
         <meta http-equiv="expires" content="0">
         <meta http-equiv="pragma" content="no-cache">
@@ -61,12 +61,13 @@ if($totalregistros > 0){
         <style type="text/css" media="all">
             body { color: #000; }
             #wrapper { max-width: 520px; margin: 0 auto; padding-top: 20px; }
-            .btn { margin-bottom: 2px; }
+            .btn { margin-bottom: 5px; }
             .table { border-radius: 3px; }
             .table th { background: #f5f5f5; }
-            .table th, .table td { vertical-align: middle !important; padding-bottom: 2px; padding-top: 2px;}
-            h3 { margin: 2px 0; }
-            .table { font-size: 11px; }
+            .table th, .table td { vertical-align: middle !important; }
+            .table { font-size: 9px; }
+            h3 { margin: 5px 0; }
+            .letras { font-size: 11px; }
 
             @media print {
                 .no-print { display: none; }
@@ -82,25 +83,24 @@ if($totalregistros > 0){
             <div id="receipt-data">
                 <div>
                     <div style="text-align:center;">
-                        <img src="../../../../assets/img/logo/<?php echo $_SESSION["config_imagen"] ?>" alt="Factura" class="img-fluid"><p style="text-align:center;">
+                        <img src="../../../../assets/img/logo/<?php echo $_SESSION["config_imagen"] ?>" alt="Factura"><p class="letras" style="text-align:center;">
 
-                    <?php echo $_SESSION["config_direccion"] ?><br><?php echo Helpers::Pais($_SESSION["config_pais"]) ?></p>
+                        <br><?php echo $_SESSION["config_direccion"] ?><br><?php echo Helpers::Pais($_SESSION["config_pais"]) ?></p>
                     </div>
-                   
+                    <p class="letras">
                         Teléfono: <?php echo $_SESSION["config_telefono"] ?><br>
                         <?php echo $_SESSION["config_nombre_documento"] ?>: <?php echo $_SESSION["config_nit"] ?><br>
-                        <?php echo $_SESSION["config_propietario"] ?> <br>
-                    
-                    <p style="padding-top: -20px;">Factura: <strong><?php echo str_pad($_REQUEST["orden"], 8, "0", STR_PAD_LEFT); ?></strong></p>
+                    </p>
+                    <p class="letras">Factura: <strong><?php echo str_pad($_REQUEST["factura"], 8, "0", STR_PAD_LEFT); ?></strong></p>
                     <div style="clear:both;"></div>
-                    <table class="table table-striped table-condensed" style="padding-top: -10px;">
+                    <table class="table table-striped table-condensed">
                         <thead>
                             <tr>
-                                <th class="text-center">Cant</th>
-                                <th class="text-center">Descripción</th>
+                                <th class="text-center" style="width: 12%; border-bottom: 2px solid #ddd;">Cant</th>
+                                <th class="text-center" style="width: 50%; border-bottom: 2px solid #ddd;">Descripción</th>
                                 
-                                <th class="text-center">Precio</th>
-                                <th class="text-center">Subtotal</th>
+                                <th class="text-center" style="width: 24%; border-bottom: 2px solid #ddd;">Precio</th>
+                                <th class="text-center" style="width: 26%; border-bottom: 2px solid #ddd;">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,7 +132,20 @@ if($totalregistros > 0){
                         <tbody>
                             <tr>
                                 <td class="text-right">Tipo Pago :</td>
-                                <td>Pago contra entrega</td>
+                                <td>Efectivo</td>
+                                <td class="text-right">Monto :</td>
+                                <td><?php if($efectivo == 0){
+                                    echo Helpers::Dinero($total);
+                                } else {
+                                    echo Helpers::Dinero($efectivo);
+                                } ?></td>
+                                <td class="text-right">Cambio :</td>
+                                <td><?php if($efectivo == 0){
+                                    echo Helpers::Dinero(0);
+                                } else {
+                                   echo Helpers::Dinero($efectivo - $total);
+                                }
+                                 ?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -145,14 +158,21 @@ echo '<div class="well well-sm" style="margin-top:10px;">
 } ?>  
 
 
-<div style="text-align: right; margin-top: -20px;">
-    Fecha: <?php echo date("d-m-Y") . " | " . date("H:i:s") ?></div>
+<div class="letras" style="text-align: right;">
+    Fecha: <?php echo $fecha . " | " . $hora ?></div>
+
+        <?php if($cliente != NULL and $documento != NULL){
+            echo '<p>
+                 Cliente: '. $cliente .' <br>
+                 Documento: '. $documento .'
+             </p>';
+        } ?>
 
 
                     
                                                                                     
-            <div class="well well-sm" style="margin-top:5px;">
-                <div style="text-align: center;">GRACIAS POR SU PREFERENCIA</div>
+            <div class="letras" class="well well-sm" style="margin-top:10px;">
+                <div style="text-align: center;">GRACIAS POR SU COMPRA. VUELVA PRONTO</div>
             </div>
 
             
@@ -165,6 +185,10 @@ echo '<div class="well well-sm" style="margin-top:10px;">
 <hr>
 <span class="pull-right col-xs-12">
 <button onclick="window.print();" class="btn btn-block btn-primary">Imprimir</button></span>
+<span class="pull-left col-xs-12"><a class="btn btn-block btn-success" href="#" id="email">Email</a></span>
+<!-- <span class="col-xs-12">
+<a class="btn btn-block btn-warning" href="../../?">Regresar</a>
+</span> -->
 <div style="clear:both;"></div>
 </div>
             <!-- end -->

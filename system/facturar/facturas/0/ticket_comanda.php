@@ -9,9 +9,11 @@ $seslog->sec_session_start();
 
 include_once '../../../../application/common/Alerts.php';
 
+
 if ($seslog->login_check() == TRUE) {
 
-   $a = $db->query("SELECT * FROM ecommerce WHERE orden = '".$_REQUEST["orden"]."' and usuario = '".$_REQUEST["usr"]."' and td = ".$_SESSION["td"]."");
+
+   $a = $db->query("SELECT * FROM ticket WHERE orden = '".$_REQUEST["orden"]."' and tx = '".$_SESSION["tx"]."' and td = ".$_SESSION["td"]."");
 
         $totalregistros =$a->num_rows;
         $datos = "";
@@ -28,9 +30,7 @@ if ($r = $db->select("medida", "producto", "WHERE cod = '".$b["cod"]."' and td =
 
 
 
-
-
-        $datos .= '<tr>
+ $datos .= '<tr>
                 <td class="text-left">'. Helpers::Entero($b["cant"]) .' '.$unidad.'</td>
                 <td>'. $b["producto"] .'</td>                                
                 <td class="text-right">'. $b["pv"] .'</td>
@@ -39,7 +39,7 @@ if ($r = $db->select("medida", "producto", "WHERE cod = '".$b["cod"]."' and td =
     } $a->close();
 
 // datos generales de la factura
-    if ($r = $db->select("sum(stotal) as stotal, sum(descuento) as descuento, sum(imp) as imp, sum(total) as total", "ecommerce", "WHERE orden = '".$_REQUEST["orden"]."' and usuario = '".$_REQUEST["usr"]."' and td = ".$_SESSION["td"]."")) { 
+    if ($r = $db->select("sum(stotal) as stotal, sum(descuento) as descuento, sum(imp) as imp, sum(total) as total", "ticket", "WHERE orden = '".$_REQUEST["orden"]."' and tx = '".$_SESSION["tx"]."' and td = ".$_SESSION["td"]."")) { 
         $stotal = $r["stotal"];
         $total = $r["total"];
         $imp = $r["imp"];
@@ -66,7 +66,7 @@ if($totalregistros > 0){
             .table th { background: #f5f5f5; }
             .table th, .table td { vertical-align: middle !important; padding-bottom: 2px; padding-top: 2px;}
             h3 { margin: 2px 0; }
-            .table { font-size: 11px; }
+            .table { font-size: 9px; }
 
             @media print {
                 .no-print { display: none; }
@@ -81,17 +81,32 @@ if($totalregistros > 0){
 
             <div id="receipt-data">
                 <div>
-                    <div style="text-align:center;">
-                        <img src="../../../../assets/img/logo/<?php echo $_SESSION["config_imagen"] ?>" alt="Factura" class="img-fluid"><p style="text-align:center;">
 
-                    <?php echo $_SESSION["config_direccion"] ?><br><?php echo Helpers::Pais($_SESSION["config_pais"]) ?></p>
-                    </div>
-                   
-                        Teléfono: <?php echo $_SESSION["config_telefono"] ?><br>
-                        <?php echo $_SESSION["config_nombre_documento"] ?>: <?php echo $_SESSION["config_nit"] ?><br>
-                        <?php echo $_SESSION["config_propietario"] ?> <br>
+
+<?php //datos del cliente 
+    if ($r = $db->select("cliente", "ticket_cliente", "WHERE orden = '".$_REQUEST["orden"]."' and tx = '".$_SESSION["tx"]."' and td = ".$_SESSION["td"]."")) { 
+        $cliente = $r["cliente"];
+    } unset($r);  
+
+    if ($r = $db->select("nombre, direccion, municipio, telefono, comentarios", "clientes", "WHERE hash = '".$cliente."' and td = ".$_SESSION["td"]."")) { 
+            $nombre = $r["nombre"];
+            $direccion = $r["direccion"];
+            $municipio = $r["municipio"];
+            $telefono = $r["telefono"];
+            $comentarios = $r["comentarios"];
+    } unset($r);  
+?>
+
+                    <strong><?php echo $nombre; ?></strong><br>
+
+                    <?php echo $direccion; ?>
+                    <?php echo $municipio; ?><br>
                     
-                    <p style="padding-top: -20px;">Factura: <strong><?php echo str_pad($_REQUEST["orden"], 8, "0", STR_PAD_LEFT); ?></strong></p>
+                    <?php echo $comentarios; ?><br>
+                    <strong><?php echo $telefono; ?></strong>
+
+                    
+                    <p style="padding-top: -20px;">Orden: <strong><?php echo str_pad($_REQUEST["orden"], 8, "0", STR_PAD_LEFT); ?></strong></p>
                     <div style="clear:both;"></div>
                     <table class="table table-striped table-condensed" style="padding-top: -10px;">
                         <thead>
@@ -137,23 +152,10 @@ if($totalregistros > 0){
                         </tbody>
                     </table>
 
-<?php if($descuento != 0){
-echo '<div class="well well-sm" style="margin-top:10px;">
-<div style="text-align: center;">Esta factura posee un total de descuento de - '. Helpers::Dinero($descuento) .'</div>
-</div>';
-
-} ?>  
 
 
 <div style="text-align: right; margin-top: -20px;">
     Fecha: <?php echo date("d-m-Y") . " | " . date("H:i:s") ?></div>
-
-
-                    
-                                                                                    
-            <div class="well well-sm" style="margin-top:5px;">
-                <div style="text-align: center;">GRACIAS POR SU PREFERENCIA</div>
-            </div>
 
             
          </div>

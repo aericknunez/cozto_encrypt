@@ -270,6 +270,80 @@ return false;
 
 
 
+/// llamar modal ver
+    $("body").on("click","#addimg",function(){ 
+        
+        $('#ModalImagen').modal('show');
+        $('#verformularioimg').hide();
+        $('#verbtnimg').show();
+        $('#mostrarvinculo').hide();
+        
+        var hash = $(this).attr('hash');
+        var op = $(this).attr('op');
+        var dataString = 'hash='+hash+'&op='+op;
+
+        $('#hash_cat').attr("value",hash);
+
+        $.ajax({
+            type: "POST",
+            url: "application/src/routes.php",
+            data: dataString,
+            beforeSend: function () {
+               $("#verimg").html('<div class="row justify-content-center" ><img src="assets/img/loa.gif" alt=""></div>');
+            },
+            success: function(data) {            
+                $("#verimg").html(data); // lo que regresa de la busquea         
+            }
+        });
+        
+    });
+
+
+    $("body").on("click","#mostraradd",function(){ 
+        $('#verformularioimg').show();
+        $('#verbtnimg').hide();
+        $('#mostrarvinculo').show();
+    });
+
+    $("body").on("click","#ocultaradd",function(){ 
+        
+        $('#verformularioimg').hide();
+        $('#verbtnimg').show();
+        $('#mostrarvinculo').hide();
+    });
+
+
+
+//////agregar imagen
+    $("#btn-img").click(function (event) {
+        event.preventDefault();
+        var form = $('#form-img')[0];
+        var data = new FormData(form);
+        var iden = $(this).attr('codigo');
+
+        $.ajax({
+            type: "POST",
+            enctype: 'multipart/form-data',
+            url: "application/src/routes.php?op=388",
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            timeout: 600000,
+            beforeSend: function () {
+                $('#btn-img').html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Loading...').addClass('disabled');
+            },
+            success: function (data) {
+                $('#btn-img').html('Subir Imagen').removeClass('disabled');
+                $("#verimg").html(data);
+                $("#form-img").trigger("reset");
+                $('#verformularioimg').hide();
+                $('#verbtnimg').show();
+                $('#mostrarvinculo').hide();
+            },
+        });
+    });
+
 
 
 
