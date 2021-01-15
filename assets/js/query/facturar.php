@@ -12,6 +12,8 @@ $.ajax({
         method: "POST",
         data: $("#form-facturar").serialize(),
         beforeSend: function () {
+           $("#formularios").hide();
+           $("#btn-te").hide(); // esconde boton tarjeta y efectivo 
            $("#resultado").html('<div class="row justify-content-center" ><img src="assets/img/loa.gif" alt=""></div>');
         },
         success: function(data){
@@ -26,9 +28,12 @@ $.ajax({
 </script>
 
 
-<?php } else {
-/// si es version web
-?>
+<?php } else {  /// si es version web
+
+
+if(isset($_SESSION["orden"])){
+    $_SESSION["orden_print"] = $_SESSION["orden"];
+}?>
 
 <script>
 $('#btn-facturar').click(function(e){ /// agregar un producto 
@@ -38,6 +43,8 @@ $.ajax({
         method: "POST",
         data: $("#form-facturar").serialize(),
         beforeSend: function () {
+           $("#formularios").hide();
+           $("#btn-te").hide(); // esconde boton tarjeta y efectivo 
            $("#botones-imprimir").html('<div class="row justify-content-center" >Imprimiendo</div>');
            $("#resultado").html('<div class="row justify-content-center" ><img src="assets/img/loa.gif" alt=""></div>');
         },
@@ -45,26 +52,41 @@ $.ajax({
             $("#form-facturar").trigger("reset");
             $("#formularios").hide();
             $("#btn-te").hide(); // esconde boton tarjeta y efectivo
-            $("#resultado").html(data);        
+            $("#resultado").html(data);     
+
+            LoadData();   
         }
     })
 
-LoadImprimir();
 });
 
 
 
-function LoadImprimir(){
-    var key = $(this).attr('key');
-    var op = $(this).attr('op');
-    var dataString = {"parametro1" : "valor1", "parametro2" : "valor2"};
+
+function LoadData(){
+    $.ajax({
+        type: "POST",
+        url: "application/src/routes.php?op=546",
+        datatype: 'json',
+        success: function(data) {  
+            var datos = data;  
+            var json = $.parseJSON(datos);
+            // console.log(json);        
+            LoadImprimir(json);
+        }
+    });
+}
+
+
+
+function LoadImprimir(parametros){
     $.ajax({
         type: "POST",
         url: "http://192.168.1.47/impresion/prueba.php",
-        data: dataString,
+        data: parametros,
         datatype: 'json',
         beforeSend: function () {
-           $("#botones-imprimir").html('<div class="row justify-content-center" >Espere...</div>');
+           $("#botones-imprimir").html('<div class="row justify-content-center" >Espere... </div>');
         },
         success: function(data) {            
             $("#botones-imprimir").html(data); // lo que regresa de la busquea         
@@ -80,5 +102,4 @@ function LoadImprimir(){
 
 
 
-<?
-} ?>
+<? } ?>
