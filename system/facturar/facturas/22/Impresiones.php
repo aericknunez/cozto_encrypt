@@ -11,10 +11,9 @@ class Impresiones{
 
 
 
-
  public function Ticket($efectivo, $numero){
   $db = new dbConn();
-  $nombre_impresora = "EPSON2";
+  $nombre_impresora = "POS-80C";
   // $img  = "C:/AppServ/www/pizto/assets/img/logo_factura/grosera.jpg";
 
 
@@ -26,31 +25,32 @@ $printer -> setFont(Printer::FONT_B);
 // $printer -> selectPrintMode(Printer::MODE_DOUBLE_HEIGHT);
 // $printer -> selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
 
-$printer -> setTextSize(1, 2);
+$printer -> setTextSize(1, 1);
 $printer -> setLineSpacing(80);
 
 
 // $printer -> setJustification(Printer::JUSTIFY_CENTER);
 // $logo = EscposImage::load($img, false);
 // $printer->bitImage($logo);
+$printer -> setJustification(Printer::JUSTIFY_CENTER);
+
+$printer->text("ROTULACIONES DIVERSAS JUAYUA");
+
 $printer -> setJustification(Printer::JUSTIFY_LEFT);
 
-$printer->text("SERVI AGRO VICENTINO");
+$printer->feed();
+$printer->text("2a avenida sur, barrio Santa Lucía, contiguo a plaza Juayúa");
+
 
 $printer->feed();
-$printer->text("Clinica Veterinaria y venta de productos Agropecuarios");
+$printer->text("Carlos Alberto Siciliano Ayala");
+
 
 $printer->feed();
-$printer->text("Dr. Ulises Napoleon Rivas Martinez");
+$printer->text("Tel: 7258-5619");
 
 $printer->feed();
-$printer->text("Calle Quinones de Osorio # 35. Bo. El Calvario, San Vicente");
-
-$printer->feed();
-$printer->text("Tel: 2393-0845");
-
-$printer->feed();
-$printer->text("FACTURA NUMERO: " . $numero);
+$printer->text("TICKET NUMERO: " . $numero);
 
 
 /* Stuff around with left margin */
@@ -92,13 +92,13 @@ $printer -> text("____________________________________________________________")
 $printer->feed();
 
 
-$printer -> text($this->DosCol("Sub Total " . $_SESSION['config_moneda_simbolo'] . ":", 40, Helpers::Format(Helpers::STotal($subtotalf, $_SESSION['config_imp'])), 20));
+$printer -> text($this->DosCol("Sub Total " . $_SESSION['config_moneda_simbolo'] . ":", 50, Helpers::Format(Helpers::STotal($subtotalf, $_SESSION['config_imp'])), 10));
 
 
-$printer -> text($this->DosCol("IVA " . $_SESSION['config_moneda_simbolo'] . ":", 40, Helpers::Format(Helpers::Impuesto(Helpers::STotal($subtotalf, $_SESSION['config_imp']), $_SESSION['config_imp'])), 20));
+$printer -> text($this->DosCol("IVA " . $_SESSION['config_moneda_simbolo'] . ":", 50, Helpers::Format(Helpers::Impuesto(Helpers::STotal($subtotalf, $_SESSION['config_imp']), $_SESSION['config_imp'])), 10));
 
 
-$printer -> text($this->DosCol("TOTAL " . $_SESSION['config_moneda_simbolo'] . ":", 40, Helpers::Format($subtotalf), 20));
+$printer -> text($this->DosCol("TOTAL " . $_SESSION['config_moneda_simbolo'] . ":", 50, Helpers::Format($subtotalf), 10));
 
 
 
@@ -113,11 +113,11 @@ if($efectivo == NULL){
 
 
 
-$printer -> text($this->DosCol("Efectivo " . $_SESSION['config_moneda_simbolo'] . ":", 40, Helpers::Format($efectivo), 20));
+$printer -> text($this->DosCol("Efectivo " . $_SESSION['config_moneda_simbolo'] . ":", 50, Helpers::Format($efectivo), 10));
 
 //cambio
 $cambios = $efectivo - $subtotalf;
-$printer -> text($this->DosCol("Cambio " . $_SESSION['config_moneda_simbolo'] . ":", 40, Helpers::Format($cambios), 20));
+$printer -> text($this->DosCol("Cambio " . $_SESSION['config_moneda_simbolo'] . ":", 50, Helpers::Format($cambios), 10));
 
 
 $printer -> text("____________________________________________________________");
@@ -126,7 +126,7 @@ $printer->feed();
 
 
 
-$printer -> text($this->DosCol($fechaf, 30, $horaf, 30));
+$printer -> text($this->DosCol(date("d-m-Y"), 30, date("H:i:s"), 30));
 
 
 
@@ -156,6 +156,117 @@ $printer->close();
  public function Factura($efectivo, $numero){
   $db = new dbConn();
 
+$txt1   = "31"; 
+$txt2   = "11";
+$txt3   = "0";
+$txt4   = "0";
+$n1   = "40";
+$n2   = "60";
+$n3   = "0";
+$n4   = "0";
+
+
+$col1 = 0;
+$col2 = 30;
+$col3 = 340;
+$col4 = 440;
+$col5 = 500;
+// $print
+$print = "EPSON LX-350";
+
+$handle = printer_open($print);
+printer_set_option($handle, PRINTER_MODE, "RAW");
+
+printer_start_doc($handle, "Mi Documento");
+printer_start_page($handle);
+
+
+$font = printer_create_font("Arial", $txt1, $txt2, PRINTER_FW_NORMAL, false, false, false, 0);
+printer_select_font($handle, $font);
+
+
+
+$oi=350;
+//// comienza la factura
+
+$oi=$oi+$n1;
+printer_draw_text($handle, date("d"), 55, $oi);
+printer_draw_text($handle, date("m"), 100, $oi);
+printer_draw_text($handle, date("Y"), 150, $oi);
+
+
+
+
+    if ($r = $db->select("cliente", "ticket_cliente", "WHERE factura = '$numero' and tx = " . $_SESSION["tx"] . " and td = " .  $_SESSION["td"])) { 
+        $hashcliente = $r["cliente"];
+    } unset($r);  
+
+
+
+    if ($r = $db->select("nombre, documento, direccion", "clientes", "WHERE hash = '$hashcliente' and td = " .  $_SESSION["td"])) { 
+        $nombre = $r["nombre"];
+        $documento = $r["documento"];
+        $direccion = $r["direccion"];
+    } unset($r);  
+
+
+
+
+printer_draw_text($handle, $nombre, 80, $oi);
+$oi=$oi+$n1;
+printer_draw_text($handle, $documento, 100, $oi);
+$oi=$oi+$n1;
+printer_draw_text($handle, $direccion, 5, $oi);
+
+
+
+$subtotalf = 0;
+
+
+$a = $db->query("select cod, cant, producto, pv, total, fecha, hora, num_fac from ticket where num_fac = '".$numero."' and tx = ".$_SESSION["tx"]." and td = ".$_SESSION["td"]." group by cod");
+  
+    foreach ($a as $b) {
+ 
+ $fechaf=$b["fecha"];
+ $horaf=$b["hora"];
+ $num_fac=$b["num_fac"];
+
+          $oi=$oi+$n1;
+          printer_draw_text($handle, $b["cant"], $col1, $oi);
+          printer_draw_text($handle, $b["producto"], $col2, $oi);
+          printer_draw_text($handle, $b["pv"], $col2, $oi);
+          printer_draw_text($handle, $b["total"], $col4, $oi);
+
+
+////
+$subtotalf = $subtotalf + $stotal;
+///
+
+    }    $a->close();
+
+
+if ($sx = $db->select("sum(total)", "ticket", "WHERE num_fac = '".$numero."' and tx = ".$_SESSION["tx"]." and td = ".$_SESSION["td"]."")) { 
+       $stotalx=$sx["sum(total)"];
+    } unset($sx); 
+ 
+
+$oi=$oi+$n1;
+printer_draw_text($handle, Helpers::Format($stotalx), $col4, $oi);
+
+
+
+
+
+
+
+printer_delete_font($font);
+///
+printer_end_page($handle);
+printer_end_doc($handle);
+printer_close($handle);
+
+
+
 
 }   /// termina FACTURA
 
@@ -171,6 +282,17 @@ $printer->close();
 
 
 
+ public function Ninguno(){
+
+$nombre_impresora = "POS-80C";
+
+$connector = new WindowsPrintConnector($nombre_impresora);
+$printer = new Printer($connector);
+$printer->pulse();
+$printer->close();
+
+
+}   /// termina /.;ninguno
 
 
 
@@ -198,18 +320,6 @@ $printer->close();
 
 
 
- public function Ninguno(){
-
-$nombre_impresora = "EPSON2";
-
-$connector = new WindowsPrintConnector($nombre_impresora);
-$printer = new Printer($connector);
-$printer->pulse();
-$printer->close();
-
-
-}   /// termina /.;ninguno
-
 
 
 
@@ -220,7 +330,6 @@ $printer->close();
 
 
  public function ReporteDiario($fecha){
-  $db = new dbConn();
 
 
 }   // termina reporte diario
@@ -233,19 +342,15 @@ $printer->close();
 
 
  public function AbrirCaja(){
-$nombre_impresora = "EPSON2";
+ // $print
+$nombre_impresora = "POS-80C";
 
 $connector = new WindowsPrintConnector($nombre_impresora);
 $printer = new Printer($connector);
 $printer->pulse();
 $printer->close();
+
 }
-
-
-
-
-
-
 
 
 
@@ -255,7 +360,7 @@ $printer->close();
 
  public function Barcode($numero){
   $db = new dbConn();
-  $nombre_impresora = "EPSON2";
+  $nombre_impresora = "POS-80C";
 
 
 $connector = new WindowsPrintConnector($nombre_impresora);
@@ -317,7 +422,6 @@ $printer -> close();
         $right = str_pad($derecha, $der, ' ', STR_PAD_LEFT);
         return "$left$right\n";
     }
-
 
 
 
