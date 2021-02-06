@@ -34,20 +34,20 @@ $printer -> setLineSpacing(80);
 // $printer->bitImage($logo);
 $printer -> setJustification(Printer::JUSTIFY_CENTER);
 
-$printer->text("ROTULACIONES DIVERSAS JUAYUA");
+$printer->text("VILLA NAPOLI");
 
 $printer -> setJustification(Printer::JUSTIFY_LEFT);
 
 $printer->feed();
-$printer->text("2a avenida sur, barrio Santa Lucía, contiguo a plaza Juayúa");
+$printer->text("Calle a San Salvador colonia el Mora Poste 337, Santa Ana");
 
 
 $printer->feed();
-$printer->text("Carlos Alberto Siciliano Ayala");
+$printer->text("Guillermo Alfredo Murillo Graniello");
 
 
 $printer->feed();
-$printer->text("Tel: 7258-5619");
+$printer->text("Tel: 79856021");
 
 $printer->feed();
 $printer->text("TICKET NUMERO: " . $numero);
